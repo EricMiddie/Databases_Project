@@ -3,14 +3,42 @@ import java.util.*;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import sql_package.SQL;
 
 public class Member implements Manageable{
-	public String email;
-	public String first_name;
-	public String last_name;
-	public String address;
-	public String phone_number;
-	public LocalDate start_date;
+	public int MemberID;
+	public String Email;
+	public String First_Name;
+	public String Last_Name;
+	public String Address;
+	public String Phone;
+	public boolean Status;
+	public int Warehouse_Distance;
+	public String W_Address;
+	public LocalDate Start_Date;
+	
+	/* This is set private so that it's ignored in the reflection */
+	private static Map<String, String> fieldToDisplayNameMap = Map.of(
+            "W_Address", "Warehouse Address",
+            "Status", "Member Status"
+            
+    );
+	
+	public static String getFieldDisplayName(String input) {
+
+		return fieldToDisplayNameMap.getOrDefault(input, input);
+	}
+	
+	public static String getKeyFromDisplayName(String value) {
+        for (Map.Entry<String, String> entry : fieldToDisplayNameMap.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                return entry.getKey();
+            }
+        }
+        return value;
+	}
+	
+
 	
     public void create(Scanner scanner) {
         fillMemberDetails(scanner, this);
@@ -26,85 +54,74 @@ public class Member implements Manageable{
     }
     
     public void display(Scanner scanner) {
-    	getMemberByEmail(scanner);
+    	findMember(scanner);
+    }
+    
+    private static void findMember(Scanner scan) {
+    	System.out.println("Enter the member's email:");
+    	String requestedEmail = SQL.sanitizeInput(scan.nextLine());
+    	
+    	SQL.ps_SearchMember(requestedEmail);
     }
     
     private static void deleteMember(Scanner scan) {
-    	Member targetMember = getMemberByEmail(scan);
-    	if(targetMember == null) return;
+    	System.out.println("Enter the member's email:");
+    	String requestedEmail = SQL.sanitizeInput(scan.nextLine());
     	
-    	for(int i = Application.members.size()-1; i>=0; i--) {
-    		if(Application.members.get(i).email.equals(targetMember.email)) {
-    			Application.members.remove(i);
-    		}
-    	}
+    	SQL.ps_RemoveMember(requestedEmail);
     	
-    	System.out.println("Removed member with email " + targetMember.email);
+    }
+    
+    public static String getFieldNamesAsString() {
+        Field[] fields = Member.class.getFields();
+        ArrayList<String> fieldNames = new ArrayList<String>();
+
+        for (int i = 0; i < fields.length; i++) {
+        	if(fields[i].getName() != "MemberID") {
+        		fieldNames.add(getFieldDisplayName(fields[i].getName()));        		
+        	}
+        }
+
+        return String.join(", ", fieldNames);
     }
     
     private static void editMemberDetails(Scanner scan) {
-    	
-    	Member targetMember = getMemberByEmail(scan);
-    	if(targetMember == null) return;
-    	
-    	System.out.println("Which attribute would you like to edit? (Type 'done' to finish editing)");
-        Field[] fields = Member.class.getDeclaredFields();
-        /* Loop through the Member fields until "done" is typed */
+        System.out.println("Enter the member's email:");
+        String email = scan.nextLine();
+        
+        Map<String, Object> changes = new HashMap<>();
+        System.out.println("Fields to change: " + getFieldNamesAsString());
+
         while (true) {
-            String inputField = scan.nextLine();
+        	System.out.println("Which attribute would you like to edit? (Type 'done' to finish editing)");
+            String inputField = scan.nextLine().trim();
             if ("done".equalsIgnoreCase(inputField)) {
-            	/* check if the user entered done */
                 break;
             }
-
-            Field fieldToEdit = null;
-            /* Loop through and check that what they entered matched a field */
-            for (Field field : fields) {
-                if (field.getName().replace('_', ' ').equalsIgnoreCase(inputField)) {
-                    fieldToEdit = field;
-                    break;
-                }
+            
+            String key = getKeyFromDisplayName(inputField);
+            
+            if(key == "MemberID") {
+            	System.out.println("Cannot change your ID");
+            }
+            else {
+            	System.out.println("Enter the new value for " + inputField + ":");
+            	String newValue = scan.nextLine();
+            	changes.put(key, newValue);            	
             }
 
-            if (fieldToEdit != null) {
-            	/* A valid field was entered, so update that value with what the user enters */
-                System.out.println("Enter the new value for " + fieldToEdit.getName().replace('_', ' ') + ":");
-                String newValue = scan.nextLine();
-                try {
-                    fieldToEdit.setAccessible(true);
-                    if (fieldToEdit.getType().equals(String.class)) 
-                    {
-                        fieldToEdit.set(targetMember, newValue);
-                    } 
-                    else if (fieldToEdit.getType().equals(int.class)) 
-                    {
-                        fieldToEdit.set(targetMember, Integer.parseInt(newValue));
-                    } 
-                    else if (fieldToEdit.getType().equals(boolean.class)) 
-                    {
-                        fieldToEdit.set(targetMember, Boolean.parseBoolean(newValue));
-                    }
-                    else if (fieldToEdit.getType().equals(LocalDate.class)) 
-                    {
-                        LocalDate value = LocalDate.parse(scan.nextLine());
-                        fieldToEdit.set(targetMember, value);
-                    }
-                    /* Update the user that the value was accepted */
-                    System.out.println("Updated " + fieldToEdit.getName().replace('_', ' ') + " to " + newValue);
-                	System.out.println("Enter the next attribute or 'done' to finish editing:");
-                } catch (IllegalAccessException | IllegalArgumentException e) {
-                    System.out.println("Could not update the field. Please ensure the value is correct.");
-                }
-            } else {
-                System.out.println("Field not recognized. Please enter a valid field name.");
-            }
         }
-    	
+
+        if (!changes.isEmpty()) {
+            SQL.ps_EditMember(email, changes);
+        } else {
+            System.out.println("No changes to update.");
+        }
     }
 	
 	private static void fillMemberDetails(Scanner scan, Member member) {
 		/* Method to populate a Member based on the name of the fields and their types */
-        Field[] fields = Member.class.getDeclaredFields();
+        Field[] fields = Member.class.getFields();
         
         /* Loop through the fields, output the name of the field and get the user's input */
         for (Field field : fields) {
@@ -116,68 +133,38 @@ public class Member implements Manageable{
             try {
                 if (field.getType().equals(String.class)) 
                 {
-                    System.out.println("Enter your " + field.getName().replace('_', ' ') + ": ");
+                    System.out.println("Enter your " + getFieldDisplayName(field.getName()).replace('_', ' ') + ": ");
                     String value = scan.nextLine();
                     field.set(member, value); 
                 } 
                 else if (field.getType().equals(int.class)) 
                 {
-                    System.out.println("Enter your " + field.getName().replace('_', ' ') + " (A Number): ");
+                    System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (A Number): ");
                     int value = Integer.parseInt(scan.nextLine());
                     field.set(member, value);
                 } 
                 else if (field.getType().equals(boolean.class)) 
                 {
-                    System.out.println("Enter your " + field.getName().replace('_', ' ') + ": ");
+                    System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (True or False): ");
                     boolean value = Boolean.parseBoolean(scan.nextLine());
                     field.set(member, value);
                 }
                 else if (field.getType().equals(LocalDate.class)) 
                 {
-                    System.out.println("Enter your " + field.getName().replace('_', ' ') + " (yyyy-mm-dd format): ");
+                    System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (yyyy-mm-dd format): ");
                     LocalDate value = LocalDate.parse(scan.nextLine());
                     field.set(member, value);
                 }
             } catch (IllegalAccessException e) {
-                System.out.println("Error setting value for " + field.getName().replace('_', ' '));
+                System.out.println("Error setting value for " +  getFieldDisplayName(field.getName()).replace('_', ' '));
             } catch (NumberFormatException e) {
-                System.out.println("Invalid format for " + field.getName().replace('_', ' '));
+                System.out.println("Invalid format for " +  getFieldDisplayName(field.getName()).replace('_', ' '));
             } catch(DateTimeParseException e) {
-            	System.out.println("Invalid format for " + field.getName().replace('_', ' '));
-            }
-        }
-       
-    }
-	
-	private static Member getMemberByEmail(Scanner scan) {
-		/* Method for prompting and finding an existing Member by their email */
-		System.out.println("Enter the email of the target member:");
-    	String requestedEmail = scan.nextLine();
-    	Member targetMember = null;
-    	for (Member m : Application.members) {
-    		if(m.email.equals(requestedEmail)) {
-    			targetMember = m;
-    		}
-    	}
-    	if(targetMember == null) {
-    		System.out.println("The requested member was not found");
-    		return null;
-    	}
-    	
-    	/* Print out the found member's details so that this can be used in many functions that already 
-    	 * have to do this
-    	 */
-        System.out.println("Current member details:");
-        Field[] fields = Member.class.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                System.out.println(field.getName().replace('_', ' ') + ": " + field.get(targetMember));
-            } catch (IllegalAccessException e) {
-                System.out.println("Could not access the value of " + field.getName());
+            	System.out.println("Invalid format for " +  getFieldDisplayName(field.getName()).replace('_', ' '));
             }
         }
         
-        return targetMember;
-	}
+        SQL.ps_AddMember(member);
+       
+    }
 }

@@ -9,7 +9,7 @@ public class RentalManagement {
     	String requestedEmail = scan.nextLine();
     	Member targetMember = null;
     	for (Member m : Application.members) {
-    		if(m.email.equals(requestedEmail)) {
+    		if(m.Email.equals(requestedEmail)) {
     			targetMember = m;
     		}
     	}
@@ -41,7 +41,7 @@ public class RentalManagement {
     	String requestedEmail = scan.nextLine();
     	Member targetMember = null;
     	for (Member m : Application.members) {
-    		if(m.email.equals(requestedEmail)) {
+    		if(m.Email.equals(requestedEmail)) {
     			targetMember = m;
     		}
     	}
@@ -67,7 +67,7 @@ public class RentalManagement {
     	String requestedEmail = scan.nextLine();
     	Member targetMember = null;
     	for (Member m : Application.members) {
-    		if(m.email.equals(requestedEmail)) {
+    		if(m.Email.equals(requestedEmail)) {
     			targetMember = m;
     		}
     	}
@@ -96,7 +96,7 @@ public class RentalManagement {
     	String requestedEmail = scan.nextLine();
     	Member targetMember = null;
     	for (Member m : Application.members) {
-    		if(m.email.equals(requestedEmail)) {
+    		if(m.Email.equals(requestedEmail)) {
     			targetMember = m;
     		}
     	}

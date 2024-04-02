@@ -1,14 +1,21 @@
 package databases_project;
 import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.DriverManager;
 
 public class Application {
 	static int MAIN_MENU_OPTIONS_COUNT = 9;
 	static int SUB_MENU_OPTIONS_COUNT = 5;
 	public static ArrayList<Member> members;
+	public static String DATABASE = "equipment_renting_system.db";
+	public static Connection conn = null;
 	
 	public static void main(String[] args) {
 		/* create the list of members */
 		members = new ArrayList<Member>();
+		conn = initialize(DATABASE);
 		Scanner scan = new Scanner(System.in);
 
 		mainMenuPrompt(scan);
@@ -16,6 +23,28 @@ public class Application {
 		scan.close();
 	}
 	
+	
+	public static Connection initialize(String database) {
+		String url = "jdbc:sqlite:" + database;
+		Connection conn = null;
+		try {
+			conn = DriverManager.getConnection(url);
+			if(conn != null) {
+				DatabaseMetaData meta = conn.getMetaData();
+				System.out.println(meta.getDriverName());
+				
+				System.out.println("Conenction to the database was successful");
+			}
+			else {
+				System.out.println("Connection was null");
+			}
+		}
+		catch(SQLException ex) {
+			System.out.println(ex.getMessage());
+			System.out.println("Error getting Connection");
+		}
+		return conn;
+	}
 	public static void mainMenuPrompt(Scanner scan) {
 		/* Method to continuously call the main menu pompt */
 		while(true) {
@@ -56,7 +85,7 @@ public class Application {
 					RentalManagement.ScheduleRentalPickup(scan);
 					break;
 				case 8:
-					System.out.println("Implemented Soon");
+					UsefulReports.usefulReportsPrompt(scan);
 					break;
 				default:
 					return;
