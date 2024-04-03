@@ -128,7 +128,6 @@ public class SQL {
         }
 
         sql.append(placeholders.toString()).append(")");
-        System.out.println(sql.toString());
 
         try {
         	PreparedStatement stmt = Application.conn.prepareStatement(sql.toString());
