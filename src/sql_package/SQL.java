@@ -21,7 +21,7 @@ public class SQL {
             return null;
         }
 
-        String whitelistPattern = "[a-zA-Z0-9\\s,.!?@()-]+";
+        String whitelistPattern = "[a-zA-Z0-9\\\\s,.!?@()-]+";
 
         StringBuilder sanitized = new StringBuilder();
         for (char c : input.toCharArray()) {
@@ -53,7 +53,7 @@ public class SQL {
 			result.close();			
 		}
 		catch(SQLException ex) {
-			
+			System.out.println(ex.getMessage());
 		}
 	}
 	
@@ -80,7 +80,7 @@ public class SQL {
             stmt.close();
 		}
 		catch(SQLException ex) {
-			
+			System.out.println(ex.getMessage());
 		}
 	}
 	
@@ -104,7 +104,7 @@ public class SQL {
         List<Object> values = new ArrayList<>();
         StringBuilder sql = new StringBuilder("INSERT INTO Member (");
         StringBuilder placeholders = new StringBuilder(") VALUES (");
-        Field[] fields = Member.class.getDeclaredFields();
+        Field[] fields = Member.class.getFields();
         boolean isFirst = true;
 
         for (Field field : fields) {

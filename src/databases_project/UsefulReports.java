@@ -2,6 +2,8 @@ package databases_project;
 
 import java.util.Scanner;
 
+import sql_package.SQL;
+
 public class UsefulReports {
 	
 	private static int REPORT_OPTIONS_COUNT = 6;
@@ -9,41 +11,66 @@ public class UsefulReports {
 	
 	public static void usefulReportsPrompt(Scanner scan) {
 		/* Method to continuously call the main menu prompt */
-		while(true) {
-			System.out.println("0.) Go Back");
-			System.out.println("1.) Find the total number of equipment items rented by a member.");
-			System.out.println("2.) Find the most populat item.");
-			System.out.println("3.) Find the most popular manufacturer.");
-			System.out.println("4.) Find the most popular drone.");
-			System.out.println("5.) Find the member who has rented the most items.");
-			System.out.println("6.) Find equipment name based on type.");
-			System.out.print("Enter the number of your selection: ");
-			int value = getUserInput(scan, REPORT_OPTIONS_COUNT-1);	
+		try {
 			
-			switch(value) {
+			while(true) {
+				System.out.println("0.) Go Back");
+				System.out.println("1.) Find the total number of equipment items rented by a member.");
+				System.out.println("2.) Find the most popular item.");
+				System.out.println("3.) Find the most popular manufacturer.");
+				System.out.println("4.) Find the most popular drone.");
+				System.out.println("5.) Find the member who has rented the most items.");
+				System.out.println("6.) Find equipment name based on type.");
+				System.out.print("Enter the number of your selection: ");
+				int value = getUserInput(scan, REPORT_OPTIONS_COUNT-1);	
+				
+				String sql = "";
+				switch(value) {
 				case 1: 
-					
+					sql = "SELECT M.First_Name, M.Last_Name, COUNT(DISTINCT R.Pickup_Drone) AS num_of_drones\r\n"
+							+ " FROM MEMBER M\r\n"
+							+ " JOIN RENTAL R ON M.MemberID = R.MemberID\r\n"
+							+ " JOIN RENTAL_EQUIPMENT RE ON R.RentalID = RE.RentalID\r\n"
+							+ " GROUP BY M.MemberID\r\n"
+							+ " LIMIT 1;";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 2: 
-					
-
+					sql = "";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 3: 
-					
-
+					sql = "";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 4: 
-					
+					sql = "";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 5: 
-					
+					sql = "SELECT M.First_Name, M.Last_Name, COUNT(RE.E_Serial_Number) AS Rental_Count\r\n"
+							+ " FROM MEMBER M\r\n"
+							+ " JOIN RENTAL R ON M.MemberID = R.MemberID\r\n"
+							+ " JOIN RENTAL_EQUIPMENT RE ON R.RentalID = RE.RentalID\r\n"
+							+ " GROUP BY M.MemberID\r\n"
+							+ " ORDER BY Rental_Count DESC\r\n"
+							+ " LIMIT 1;";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 6: 
-					
+					sql = "SELECT D.Manufacturer, D.Name, D.Serial_Number, D.Year_Manufactured\r\n"
+							+ " FROM DRONE D\r\n"
+							+ " WHERE D.Year_Manufactured > 2022\r\n"
+							+ " ORDER BY D.Manufacturer;";
+					SQL.ps_ExecuteQuery(sql);
 					break;
 				default:
 					return;
+				}
 			}
+		}
+		catch(Exception ex) {
+			
 		}
 	}
 	public static int getUserInput(Scanner scan, int maxEntry) {

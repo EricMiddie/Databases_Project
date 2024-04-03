@@ -134,7 +134,7 @@ public class Member implements Manageable{
                 if (field.getType().equals(String.class)) 
                 {
                     System.out.println("Enter your " + getFieldDisplayName(field.getName()).replace('_', ' ') + ": ");
-                    String value = scan.nextLine();
+                    String value = SQL.sanitizeInput(scan.nextLine());
                     field.set(member, value); 
                 } 
                 else if (field.getType().equals(int.class)) 
@@ -146,7 +146,7 @@ public class Member implements Manageable{
                 else if (field.getType().equals(boolean.class)) 
                 {
                     System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (True or False): ");
-                    boolean value = Boolean.parseBoolean(scan.nextLine());
+                    boolean value = Boolean.parseBoolean(SQL.sanitizeInput(scan.nextLine()));
                     field.set(member, value);
                 }
                 else if (field.getType().equals(LocalDate.class)) 
