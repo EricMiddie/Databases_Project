@@ -10,7 +10,7 @@ public class UsefulReports {
 
 	
 	public static void usefulReportsPrompt(Scanner scan) {
-		/* Method to continuously call the main menu prompt */
+		/* Method for selecting the useful reports */
 		try {
 			
 			while(true) {
@@ -36,14 +36,27 @@ public class UsefulReports {
 					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 2: 
-					sql = "";
+					sql = "SELECT e.Description, \r\n"
+							+ " COUNT(re.E_Serial_Number) AS Times_Rented, \r\n"
+							+ " SUM(julianday(r.Return_Date) - julianday(r.Rental_Start_Date)) AS Running_Rented_Time\r\n"
+							+ " FROM EQUIPMENT e\r\n"
+							+ " JOIN RENTAL_EQUIPMENT re ON e.Serial_Number = re.E_Serial_Number\r\n"
+							+ " JOIN RENTAL r ON re.RentalID = r.RentalID\r\n"
+							+ " GROUP BY e.Serial_Number\r\n"
+							+ " ORDER BY Running_Rented_Time DESC, Times_Rented DESC;";
 					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 3: 
-					sql = "";
+					sql = "SELECT e.Manufacturer, COUNT(re.E_Serial_Number) AS Total_Rented\r\n"
+							+ " FROM EQUIPMENT e\r\n"
+							+ " JOIN RENTAL_EQUIPMENT re ON e.Serial_Number = re.E_Serial_Number\r\n"
+							+ " GROUP BY e.Manufacturer\r\n"
+							+ " ORDER BY Total_Rented DESC\r\n"
+							+ " LIMIT 1; ";
 					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 4: 
+					System.out.println("Not implemented yet");
 					sql = "";
 					SQL.ps_ExecuteQuery(sql);
 					break;

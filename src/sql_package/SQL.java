@@ -84,11 +84,11 @@ public class SQL {
 		}
 	}
 	
-	public static void ps_SearchMember(String email) {
+	public static void ps_SearchMember(int memberID) {
 		try {
-			String sql = "SELECT * FROM Member WHERE Email = ?";
+			String sql = "SELECT * FROM Member WHERE MemberID = ?";
 			PreparedStatement stmt = Application.conn.prepareStatement(sql);		
-			stmt.setString(1, email);
+			stmt.setInt(1, memberID);
 			ResultSet result = stmt.executeQuery();
             ResultSetMetaData rsmd = result.getMetaData();
             outputResult(result, rsmd);
@@ -144,25 +144,24 @@ public class SQL {
         }
 	}
 	
-	public static void ps_RemoveMember(String email) {
+	public static void ps_RemoveMember(int memberID) {
+
 		
-		if(email == null) return;
-		
-		String sql = "DELETE FROM Member WHERE email = ?;";
+		String sql = "DELETE FROM Member WHERE MemberID = ?;";
 		try {
 			PreparedStatement stmt = Application.conn.prepareStatement(sql);	
-			stmt.setString(1, sanitizeInput(email));
+			stmt.setInt(1, memberID);
 			stmt.executeUpdate();
             stmt.close();
 		}
 		catch(SQLException ex) {
-			System.out.println("Error removing member with email: " + email);
+			System.out.println("Error removing member with Id: " + memberID);
 		}
 		
 		
 	}
 	
-	public static void ps_EditMember(String email, Map<String, Object> changes) {
+	public static void ps_EditMember(int memberID, Map<String, Object> changes) {
         if (changes.isEmpty()) {
             System.out.println("No changes provided.");
             return;
@@ -181,8 +180,8 @@ public class SQL {
             sql.append(i > 0 ? ", " : "").append(field).append(" = ?");
             values[i++] = changes.get(field);
         }
-        sql.append(" WHERE email = ?;");
-        values[i] = email;
+        sql.append(" WHERE MemberID = ?;");
+        values[i] = memberID;
 
         /* Build the PreparedStatement */
         try{

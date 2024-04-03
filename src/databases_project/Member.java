@@ -58,17 +58,17 @@ public class Member implements Manageable{
     }
     
     private static void findMember(Scanner scan) {
-    	System.out.println("Enter the member's email:");
-    	String requestedEmail = SQL.sanitizeInput(scan.nextLine());
+    	System.out.println("Enter the member's ID:");
+    	int requestedID = Integer.parseInt(scan.nextLine());
     	
-    	SQL.ps_SearchMember(requestedEmail);
+    	SQL.ps_SearchMember(requestedID);
     }
     
     private static void deleteMember(Scanner scan) {
-    	System.out.println("Enter the member's email:");
-    	String requestedEmail = SQL.sanitizeInput(scan.nextLine());
+    	System.out.println("Enter the member's ID:");
+    	int requestedID = Integer.parseInt(scan.nextLine());
     	
-    	SQL.ps_RemoveMember(requestedEmail);
+    	SQL.ps_RemoveMember(requestedID);
     	
     }
     
@@ -86,8 +86,8 @@ public class Member implements Manageable{
     }
     
     private static void editMemberDetails(Scanner scan) {
-        System.out.println("Enter the member's email:");
-        String email = scan.nextLine();
+        System.out.println("Enter the member's ID:");
+    	int requestedID = Integer.parseInt(scan.nextLine());
         
         Map<String, Object> changes = new HashMap<>();
         System.out.println("Fields to change: " + getFieldNamesAsString());
@@ -113,7 +113,7 @@ public class Member implements Manageable{
         }
 
         if (!changes.isEmpty()) {
-            SQL.ps_EditMember(email, changes);
+            SQL.ps_EditMember(requestedID, changes);
         } else {
             System.out.println("No changes to update.");
         }
