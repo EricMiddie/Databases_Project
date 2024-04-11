@@ -5,26 +5,28 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import sql_package.SQL;
 
-public class Member implements Manageable{
-	public int MemberID;
-	public String Email;
-	public String First_Name;
-	public String Last_Name;
-	public String Address;
-	public String Phone;
-	public boolean Status;
-	public int Warehouse_Distance;
-	public String W_Address;
-	public LocalDate Start_Date;
+public class Drone implements Manageable{
+	public static String Serial_Number;
+	public static String Model_Number;
+	public static String Manufacturer;
+	public static int Year_Manufactured;
+	public static String Name;
+	public static int Max_Speed;
+	public static int Weight_Capacity;
+	public static int Distance_Autonomy;
+	public static String Location;
+	public static String W_Address;
+	public static int Order_Number;
 	
-	/* This is the base table for this class */
-	private static String mainTable = "MEMBER";
-	private static String PRIMARY_KEY = "MemberID";
+	
+	/* the main table this class manages */
+	private static String mainTable = "DRONE";
+	private static String PRIMARY_KEY = "Serial_Number";
 	
 	/* This is set private so that it's ignored in the reflection */
 	private static Map<String, String> fieldToDisplayNameMap = Map.of(
             "W_Address", "Warehouse Address",
-            "Status", "Member Status"
+            "Status", "Availability Status"
             
     );
 	
@@ -45,33 +47,33 @@ public class Member implements Manageable{
 
 	
     public void create(Scanner scanner) {
-        fillMemberDetails(scanner, this);
+        fillDroneDetails(scanner, this);
     }
 
     public void edit(Scanner scanner) {
-    	editMemberDetails(scanner);
+    	editDroneDetails(scanner);
     }
 
     public void delete(Scanner scanner) {
-        deleteMember(scanner);
+        deleteDrone(scanner);
     }
     
     public void display(Scanner scanner) {
-    	findMember(scanner);
+    	findDrone(scanner);
     }
     
-    private static void findMember(Scanner scan) {
-    	System.out.println("Enter the member's ID:");
-    	int requestedID = Integer.parseInt(scan.nextLine());
+    private static void findDrone(Scanner scan) {
+    	System.out.println("Enter the Serial Number:");
+    	String requestedSN = scan.nextLine();
     	
-    	SQL.ps_SearchMember(requestedID);
+    	SQL.ps_SearchDrone(requestedSN);
     }
     
-    private static void deleteMember(Scanner scan) {
-    	System.out.println("Enter the member's ID:");
-    	int requestedID = Integer.parseInt(scan.nextLine());
+    private static void deleteDrone(Scanner scan) {
+    	System.out.println("Enter the Serial Number:");
+    	String droneSN = scan.nextLine();
     	
-    	SQL.ps_RemoveMember(requestedID);
+    	SQL.ps_RemoveDrone(droneSN);
     	
     }
     
@@ -80,7 +82,7 @@ public class Member implements Manageable{
         ArrayList<String> fieldNames = new ArrayList<String>();
 
         for (int i = 0; i < fields.length; i++) {
-        	if(fields[i].getName() != "MemberID") {
+        	if(fields[i].getName() != PRIMARY_KEY) {
         		fieldNames.add(getFieldDisplayName(fields[i].getName()));        		
         	}
         }
@@ -88,7 +90,7 @@ public class Member implements Manageable{
         return String.join(", ", fieldNames);
     }
     
-    private static void editMemberDetails(Scanner scan) {
+    private static void editDroneDetails(Scanner scan) {
         System.out.println("Enter the member's ID:");
     	int requestedID = Integer.parseInt(scan.nextLine());
         
@@ -104,8 +106,8 @@ public class Member implements Manageable{
             
             String key = getKeyFromDisplayName(inputField);
             
-            if(key == "MemberID") {
-            	System.out.println("Cannot change your ID");
+            if(key == "Serial_Number") {
+            	System.out.println("Cannot change the Serial Number");
             }
             else {
             	System.out.println("Enter the new value for " + inputField + ":");
@@ -122,15 +124,12 @@ public class Member implements Manageable{
         }
     }
 	
-	private static void fillMemberDetails(Scanner scan, Member member) {
-		/* Method to populate a Member based on the name of the fields and their types */
-        Field[] fields = Member.class.getFields();
+	private static void fillDroneDetails(Scanner scan, Drone d) {
+		/* Method to populate a Drone based on the name of the fields and their types */
+        Field[] fields = Drone.class.getFields();
         
         /* Loop through the fields, output the name of the field and get the user's input */
         for (Field field : fields) {
-        	if(field.getName() == "id") {
-        		continue;
-        	}
             field.setAccessible(true);
 
             try {
@@ -138,25 +137,25 @@ public class Member implements Manageable{
                 {
                     System.out.println("Enter your " + getFieldDisplayName(field.getName()).replace('_', ' ') + ": ");
                     String value = SQL.sanitizeInput(scan.nextLine());
-                    field.set(member, value); 
+                    field.set(d, value); 
                 } 
                 else if (field.getType().equals(int.class)) 
                 {
                     System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (A Number): ");
                     int value = Integer.parseInt(scan.nextLine());
-                    field.set(member, value);
+                    field.set(d, value);
                 } 
                 else if (field.getType().equals(boolean.class)) 
                 {
                     System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (True or False): ");
                     boolean value = Boolean.parseBoolean(SQL.sanitizeInput(scan.nextLine()));
-                    field.set(member, value);
+                    field.set(d, value);
                 }
                 else if (field.getType().equals(LocalDate.class)) 
                 {
                     System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (yyyy-mm-dd format): ");
                     LocalDate value = LocalDate.parse(scan.nextLine());
-                    field.set(member, value);
+                    field.set(d, value);
                 }
             } catch (IllegalAccessException e) {
                 System.out.println("Error setting value for " +  getFieldDisplayName(field.getName()).replace('_', ' '));
@@ -167,7 +166,7 @@ public class Member implements Manageable{
             }
         }
         
-        SQL.ps_AddManageable(member, mainTable);
+        SQL.ps_AddManageable(d, mainTable);
        
     }
 }

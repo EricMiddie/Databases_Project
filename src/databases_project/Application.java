@@ -8,13 +8,12 @@ import java.sql.DriverManager;
 public class Application {
 	static int MAIN_MENU_OPTIONS_COUNT = 9;
 	static int SUB_MENU_OPTIONS_COUNT = 5;
-	public static ArrayList<Member> members;
 	public static String DATABASE = "equipment_renting_system.db";
+	public static List<Member> members;
 	public static Connection conn = null;
 	
 	public static void main(String[] args) {
 		/* create the list of members */
-		members = new ArrayList<Member>();
 		conn = initialize(DATABASE);
 		Scanner scan = new Scanner(System.in);
 
@@ -62,15 +61,13 @@ public class Application {
 			
 			switch(value) {
 				case 1: 
-					manageableSubMenuPrompt(scan, "members", new Member());
+					manageableSubMenuPrompt(scan, "members", new Member(), "Member ID");
 					break;
 				case 2: 
-					System.out.println("Not Implemented");
-//					subMenuPrompt(scan, "equipment", new Equipment());
+					manageableSubMenuPrompt(scan, "equipment", new Equipment(), "Serial Number");
 					break;
 				case 3: 
-					System.out.println("Not Implemented");
-//					subMenuPrompt(scan, "drones", new Drone());
+					manageableSubMenuPrompt(scan, "drones", new Drone(), "Serial Number");
 					break;
 				case 4: 
 					RentalManagement.RentEquipment(scan);
@@ -109,13 +106,13 @@ public class Application {
 		}
 	}
 	
-	public static void manageableSubMenuPrompt(Scanner scan, String subgroup, Manageable entity) {
+	public static void manageableSubMenuPrompt(Scanner scan, String subgroup, Manageable entity, String key) {
 		/* Method to interact with the "entity" types, adding, editing, or deleting */
 		System.out.println("0.) Go Back");
 		System.out.println("1.) Add");
 		System.out.println("2.) Edit");
 		System.out.println("3.) Delete");
-		System.out.println("4.) Search By Email");
+		System.out.println("4.) Search By "+ key);
 		System.out.print("What do you want to do for " + subgroup + ": ");
 		int value = getUserInput(scan, SUB_MENU_OPTIONS_COUNT);
 		if(value == 0) {

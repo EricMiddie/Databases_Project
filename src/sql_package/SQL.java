@@ -11,7 +11,7 @@ import java.util.Set;
 
 import databases_project.Application;
 
-import databases_project.Member;
+import databases_project.Manageable;
 
 public class SQL {
 	
@@ -100,11 +100,43 @@ public class SQL {
 		
 	}
 	
-	public static void ps_AddMember(Member m) {
+	public static void ps_SearchEquipment(String equipmentSN) {
+		try {
+			String sql = "SELECT * FROM EQUIPMENT WHERE Serial_Number = ?";
+			PreparedStatement stmt = Application.conn.prepareStatement(sql);		
+			stmt.setString(1, equipmentSN);
+			ResultSet result = stmt.executeQuery();
+            ResultSetMetaData rsmd = result.getMetaData();
+            outputResult(result, rsmd);
+            stmt.close();
+		}
+		catch(SQLException ex){
+			
+		}
+		
+	}
+	
+	public static void ps_SearchDrone(String droneSN) {
+		try {
+			String sql = "SELECT * FROM DRONE WHERE Serial_Number = ?";
+			PreparedStatement stmt = Application.conn.prepareStatement(sql);		
+			stmt.setString(1, droneSN);
+			ResultSet result = stmt.executeQuery();
+            ResultSetMetaData rsmd = result.getMetaData();
+            outputResult(result, rsmd);
+            stmt.close();
+		}
+		catch(SQLException ex){
+			
+		}
+		
+	}
+	
+	public static void ps_AddManageable(Manageable m, String table) {
         List<Object> values = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("INSERT INTO Member (");
+        StringBuilder sql = new StringBuilder("INSERT INTO "+table+" (");
         StringBuilder placeholders = new StringBuilder(") VALUES (");
-        Field[] fields = Member.class.getFields();
+        Field[] fields = m.getClass().getFields();
         boolean isFirst = true;
 
         for (Field field : fields) {
@@ -156,11 +188,39 @@ public class SQL {
 		catch(SQLException ex) {
 			System.out.println("Error removing member with Id: " + memberID);
 		}
-		
-		
 	}
 	
-	public static void ps_EditMember(int memberID, Map<String, Object> changes) {
+	public static void ps_RemoveEquipment(String serialNumber) {
+
+		
+		String sql = "DELETE FROM EQUIPMENT WHERE Serial_Number = ?;";
+		try {
+			PreparedStatement stmt = Application.conn.prepareStatement(sql);	
+			stmt.setString(1, serialNumber);
+			stmt.executeUpdate();
+            stmt.close();
+		}
+		catch(SQLException ex) {
+			System.out.println("Error removing equipment with Serial Number: " + serialNumber);
+		}
+	}
+	
+	public static void ps_RemoveDrone(String serialNumber) {
+
+		
+		String sql = "DELETE FROM DRONE WHERE Serial_Number = ?;";
+		try {
+			PreparedStatement stmt = Application.conn.prepareStatement(sql);	
+			stmt.setString(1, serialNumber);
+			stmt.executeUpdate();
+            stmt.close();
+		}
+		catch(SQLException ex) {
+			System.out.println("Error removing drone with Serial Number: " + serialNumber);
+		}
+	}
+	
+	public static void ps_EditManageable(Object keyValue, Map<String, Object> changes, String primaryKey) {
         if (changes.isEmpty()) {
             System.out.println("No changes provided.");
             return;
@@ -179,8 +239,8 @@ public class SQL {
             sql.append(i > 0 ? ", " : "").append(field).append(" = ?");
             values[i++] = changes.get(field);
         }
-        sql.append(" WHERE MemberID = ?;");
-        values[i] = memberID;
+        sql.append(" WHERE "+primaryKey+" = ?;");
+        values[i] = keyValue;
 
         /* Build the PreparedStatement */
         try{

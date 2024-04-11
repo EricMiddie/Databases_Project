@@ -56,8 +56,36 @@ public class UsefulReports {
 					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 4: 
-					System.out.println("Not implemented yet");
-					sql = "";
+					sql = "SELECT\r\n"
+							+ "   D.Serial_Number,\r\n"
+							+ "\r\n"
+							+ "   D.Name,\r\n"
+							+ "\r\n"
+							+ "   COUNT(R.RentalID) AS Total_Deliveries,\r\n"
+							+ "\r\n"
+							+ "   SUM(Warehouse_Distance) AS Total_Miles_Flown\r\n"
+							+ "\r\n"
+							+ " FROM \r\n"
+							+ "\r\n"
+							+ "   RENTAL R\r\n"
+							+ "\r\n"
+							+ "   INNER JOIN DRONE D ON R.Delivery_Drone = D.Serial_Number\r\n"
+							+ "\r\n"
+							+ "   INNER JOIN MEMBER M ON R.MemberID = M.MemberID\r\n"
+							+ "\r\n"
+							+ "   INNER JOIN WAREHOUSE W ON D.W_Address = W.Address\r\n"
+							+ "\r\n"
+							+ " WHERE \r\n"
+							+ "\r\n"
+							+ "   M.MemberID = R.MemberID\r\n"
+							+ "\r\n"
+							+ " GROUP BY \r\n"
+							+ "\r\n"
+							+ "   D.Serial_Number, D.Name\r\n"
+							+ "\r\n"
+							+ " ORDER BY \r\n"
+							+ "\r\n"
+							+ "   Total_Deliveries DESC, Total_Miles_Flown DESC;";
 					SQL.ps_ExecuteQuery(sql);
 					break;
 				case 5: 
