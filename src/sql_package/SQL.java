@@ -70,6 +70,23 @@ public class SQL {
 		}
 	}
 	
+	public static void ps_ExecuteSearchQuery(String sql, ArrayList<Object> objects)
+	{
+		try {
+			PreparedStatement stmt = Application.conn.prepareStatement(sql);
+			for(int i =0 ;i< objects.size(); i++) {
+				stmt.setObject(i+1, objects.get(i));
+			}
+			ResultSet result = stmt.executeQuery();
+            ResultSetMetaData rsmd = result.getMetaData();
+            outputResult(result, rsmd);
+            stmt.close();
+		}
+		catch(SQLException ex) {
+			
+		}
+	}
+	
 	public static void ps_ExecuteQueryOnMember(String sql, int MemberID) {
 		try {
 			PreparedStatement stmt = Application.conn.prepareStatement(sql);		
