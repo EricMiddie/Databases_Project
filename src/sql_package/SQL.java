@@ -171,7 +171,7 @@ public class SQL {
             System.out.println(affectedRows + " row(s) updated.");
             stmt.close();
         } catch (SQLException e) {
-            System.out.println("An error occurred updating the Member: " + e.getMessage());
+            System.out.println("An error occurred updating the Entity: " + e.getMessage());
         }
 	}
 	
@@ -220,14 +220,14 @@ public class SQL {
 		}
 	}
 	
-	public static void ps_EditManageable(Object keyValue, Map<String, Object> changes, String primaryKey) {
+	public static void ps_EditManageable(Object keyValue, Map<String, Object> changes, String primaryKey, String table) {
         if (changes.isEmpty()) {
             System.out.println("No changes provided.");
             return;
         }
 
         /* Start building the SQL query for the update */
-        StringBuilder sql = new StringBuilder("UPDATE Member SET ");
+        StringBuilder sql = new StringBuilder("UPDATE "+table+" SET ");
         Set<String> fields = changes.keySet();
         
         /* Need to add one because email is not listed as a change */

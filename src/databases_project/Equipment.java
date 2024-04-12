@@ -7,7 +7,7 @@ import sql_package.SQL;
 
 public class Equipment implements Manageable{
 	public String Serial_Number;
-	public String Model_Number;
+	public int Model_Number;
 	public String Equipment_Type;
 	public String Description;
 	public String Manufacturer;
@@ -84,11 +84,11 @@ public class Equipment implements Manageable{
     }
     
     public static String getFieldNamesAsString() {
-        Field[] fields = Member.class.getFields();
+        Field[] fields = Equipment.class.getFields();
         ArrayList<String> fieldNames = new ArrayList<String>();
 
         for (int i = 0; i < fields.length; i++) {
-        	if(fields[i].getName() != "MemberID") {
+        	if(fields[i].getName() != "Serial_Number") {
         		fieldNames.add(getFieldDisplayName(fields[i].getName()));        		
         	}
         }
@@ -97,8 +97,8 @@ public class Equipment implements Manageable{
     }
     
     private static void editEquipmentDetails(Scanner scan) {
-        System.out.println("Enter the member's ID:");
-    	int requestedID = Integer.parseInt(scan.nextLine());
+        System.out.println("Enter the Serial Number:");
+    	String requestedSN = scan.nextLine();
         
         Map<String, Object> changes = new HashMap<>();
         System.out.println("Fields to change: " + getFieldNamesAsString());
@@ -124,7 +124,7 @@ public class Equipment implements Manageable{
         }
 
         if (!changes.isEmpty()) {
-            SQL.ps_EditManageable(requestedID, changes, PRIMARY_KEY);
+            SQL.ps_EditManageable(requestedSN, changes, PRIMARY_KEY, mainTable);
         } else {
             System.out.println("No changes to update.");
         }
@@ -153,7 +153,7 @@ public class Equipment implements Manageable{
                 } 
                 else if (field.getType().equals(boolean.class)) 
                 {
-                    System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (True or False): ");
+                    System.out.println("Enter your " +  getFieldDisplayName(field.getName()).replace('_', ' ') + " (1 [True] or 0 [False]): ");
                     boolean value = Boolean.parseBoolean(SQL.sanitizeInput(scan.nextLine()));
                     field.set(eq, value);
                 }

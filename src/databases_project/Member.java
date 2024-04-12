@@ -116,7 +116,7 @@ public class Member implements Manageable{
         }
 
         if (!changes.isEmpty()) {
-            SQL.ps_EditManageable(requestedID, changes, PRIMARY_KEY);
+            SQL.ps_EditManageable(requestedID, changes, PRIMARY_KEY, mainTable);
         } else {
             System.out.println("No changes to update.");
         }

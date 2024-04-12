@@ -85,6 +85,13 @@ public class RentalManagement {
     		        stmt.setString(2, serialNumber);
     		        stmt.executeUpdate();
     		    }
+    		    
+    		    try (PreparedStatement stmt = Application.conn.prepareStatement(
+        		        "UPDATE Equipment SET Status = FALSE WHERE Serial_Number = ?")) 
+        		    {
+        		        stmt.setString(1, serialNumber);
+        		        stmt.executeUpdate();
+        		    }
 
     		    /* commit on success */
     		    Application.conn.commit();
@@ -146,6 +153,13 @@ public class RentalManagement {
        		        stmt.setInt(3, memberID);
        		        stmt.executeUpdate();
        		    }
+       		    
+    		    try (PreparedStatement stmt = Application.conn.prepareStatement(
+        		        "UPDATE Equipment SET Status = TRUE WHERE Serial_Number = (SELECT E_Serial_Number FROM Rental_Equipment WHERE RentalID = ?);")) 
+        		    {
+        		        stmt.setInt(1, rentalID);
+        		        stmt.executeUpdate();
+        		    }
 
        		    /* Create the Rental_Equipment association */
        		    try (PreparedStatement stmt = Application.conn.prepareStatement(
@@ -154,6 +168,7 @@ public class RentalManagement {
        		        stmt.setInt(1, rentalID);
        		        stmt.executeUpdate();
        		    }
+       		    
 
        		    /* commit on success */
        		    Application.conn.commit();
@@ -197,6 +212,7 @@ public class RentalManagement {
 		System.out.println("Enter your Member ID:");
 		int memberID = Integer.parseInt(scan.nextLine());
 		int rentalID = 0;
+		String serialNumber = null;
     	try {
     		System.out.println("Enter your rental ID: ");
     		rentalID = Integer.parseInt(scan.nextLine());
@@ -205,22 +221,32 @@ public class RentalManagement {
        		    /* This essentially start the transaction */
        		    Application.conn.setAutoCommit(false);
        		    
+       		    /* This gets a drone that is available, that is able to carry the desired equipment */
        		    try (PreparedStatement stmt = Application.conn.prepareStatement(
        		    	"SELECT d.Serial_Number FROM DRONE d, EQUIPMENT e, RENTAL_EQUIPMENT re, MEMBER m"
-       		    	+ " WHERE e.Serial_Number = re.E_Serial_Number AND re.RentalID = ? AND d.Weight_Capacity < e.Weight"
-       		    	+ " AND m.MemberID = ? AND m.Warehouse_Distance < (d.Distance_Autonomy / 2) "))
+       		    	+ " WHERE e.Serial_Number = re.E_Serial_Number AND re.RentalID = ? AND d.Weight_Capacity > e.Weight"
+       		    	+ " AND m.MemberID = ? AND m.Warehouse_Distance < (d.Distance_Autonomy / 2) AND d.Status = TRUE;"))
        		    {
-       		    	
+       		    	stmt.setInt(1,  rentalID);
+       		    	stmt.setInt(2,  memberID);
+        		    ResultSet rs = stmt.executeQuery();
+        		    if (rs.next()) 
+        		    {
+        		        serialNumber = rs.getString("Serial_Number");
+        		    } 
+        		    else 
+        		    {
+        		    	System.out.println("No Drones are Available.");
+        		    	return;
+        		    }
        		    }
-       		    catch(SQLException ex) {
-       		    	
-       		    }
+
 
        		    /* Create the rental */
        		    try (PreparedStatement stmt = Application.conn.prepareStatement(
-       		        "UPDATE Rental SET Return_Date = ? WHERE RentalID = ? AND MemberID = ?;")) 
+       		        "UPDATE Rental SET Delivery_Drone = ? WHERE RentalID = ? AND MemberID = ?;")) 
        		    {
-       		        stmt.setObject(1,LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+       		        stmt.setObject(1, serialNumber);
        		        stmt.setObject(2, rentalID);
        		        stmt.setInt(3, memberID);
        		        stmt.executeUpdate();
@@ -228,15 +254,15 @@ public class RentalManagement {
 
        		    /* Create the Rental_Equipment association */
        		    try (PreparedStatement stmt = Application.conn.prepareStatement(
-       		        "DELETE FROM Rental_Equipment WHERE RentalID = ?;")) 
+       		        "UPDATE Drone SET Status = FALSE WHERE Serial_Number = ?")) 
        		    {
-       		        stmt.setInt(1, rentalID);
+       		        stmt.setString(1, serialNumber);
        		        stmt.executeUpdate();
        		    }
 
        		    /* commit on success */
        		    Application.conn.commit();
-       		    System.out.println("Rental Return Complete!");
+       		    System.out.println("A drone will be on it's way to drop your rental off!");
        		} 
        		catch (SQLException e) 
        		{
@@ -273,31 +299,92 @@ public class RentalManagement {
 	}
 	
 	public static void ScheduleRentalPickup(Scanner scan) {
-		System.out.println("Enter the email of the target member:");
-    	String requestedEmail = scan.nextLine();
-    	Member targetMember = null;
-    	for (Member m : Application.members) {
-    		if(m.Email.equals(requestedEmail)) {
-    			targetMember = m;
-    		}
-    	}
-    	if(targetMember == null) {
-    		System.out.println("The requested member was not found");
-    		return;
-    	}
+		System.out.println("Enter your Member ID:");
+		int memberID = Integer.parseInt(scan.nextLine());
+		int rentalID = 0;
+		String serialNumber = null;
     	try {
     		System.out.println("Enter your rental ID: ");
-    		String rentalID = scan.nextLine();
+    		rentalID = Integer.parseInt(scan.nextLine());
+
+       		try {
+       		    /* This essentially start the transaction */
+       		    Application.conn.setAutoCommit(false);
+       		    
+       		    /* This gets a drone that is available, that is able to carry the desired equipment */
+       		    try (PreparedStatement stmt = Application.conn.prepareStatement(
+       		    	"SELECT d.Serial_Number FROM DRONE d, EQUIPMENT e, RENTAL_EQUIPMENT re, MEMBER m"
+       		    	+ " WHERE e.Serial_Number = re.E_Serial_Number AND re.RentalID = ? AND d.Weight_Capacity > e.Weight"
+       		    	+ " AND m.MemberID = ? AND m.Warehouse_Distance < (d.Distance_Autonomy / 2) AND d.Status = TRUE;"))
+       		    {
+       		    	stmt.setInt(1,  rentalID);
+       		    	stmt.setInt(2,  memberID);
+        		    ResultSet rs = stmt.executeQuery();
+        		    if (rs.next()) 
+        		    {
+        		        serialNumber = rs.getString("Serial_Number");
+        		    } 
+        		    else 
+        		    {
+        		    	System.out.println("No Drones are Available.");
+        		    	return;
+        		    }
+       		    }
+
+
+       		    /* Create the rental */
+       		    try (PreparedStatement stmt = Application.conn.prepareStatement(
+       		        "UPDATE Rental SET Pickup_Drone = ? WHERE RentalID = ? AND MemberID = ?;")) 
+       		    {
+       		        stmt.setObject(1, serialNumber);
+       		        stmt.setObject(2, rentalID);
+       		        stmt.setInt(3, memberID);
+       		        stmt.executeUpdate();
+       		    }
+
+       		    /* Create the Rental_Equipment association */
+       		    try (PreparedStatement stmt = Application.conn.prepareStatement(
+       		        "UPDATE Drone SET Status = FALSE WHERE Serial_Number = ?")) 
+       		    {
+       		        stmt.setString(1, serialNumber);
+       		        stmt.executeUpdate();
+       		    }
+
+       		    /* commit on success */
+       		    Application.conn.commit();
+       		    System.out.println("A drone will be on it's way to pick your rental up!");
+       		} 
+       		catch (SQLException e) 
+       		{
+       		    try 
+       		    {
+       		    	/* Roll-back on failure */
+       		        Application.conn.rollback();
+       		        System.out.println("Transaction is rolled back.");
+       		    } 
+       		    catch (SQLException ex) 
+       		    {
+       		        System.out.println(ex);
+       		    }
+       		    e.printStackTrace();
+       		} 
+       		finally 
+       		{
+       		    try 
+       		    {
+       		        /* Turns back on the auto commits */
+       		        Application.conn.setAutoCommit(true);
+       		    } 
+       		    catch (SQLException e) 
+       		    {
+       		        System.out.println(e);
+       		    }
+       		}
     		
-    		System.out.println("Enter your preferred pick up date (yyyy-mm-dd format): ");
-    		LocalDate pickupDate = LocalDate.parse(scan.nextLine());
-    		
-    		/* Assign the drone to pick the equipment here */
-    		
-    		System.out.println("Thank you for your rental, we will assign a pick-up drone shortly.");
-    		
-    	}catch(Exception ex) {
-    		System.out.println("Invalid Input");
+    	}
+    	catch(Exception ex) 
+    	{
+    		System.out.println(ex);
     	}
 	}
 
